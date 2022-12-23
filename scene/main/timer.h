@@ -37,12 +37,13 @@ class Timer : public Node {
 	GDCLASS(Timer, Node);
 
 	double wait_time = 1.0;
-	bool one_shot = false;
+	int max_repeats = 0;
 	bool autostart = false;
 	bool processing = false;
 	bool paused = false;
 
 	double time_left = -1.0;
+	int repeat_index = 0;
 
 protected:
 	void _notification(int p_what);
@@ -57,8 +58,8 @@ public:
 	void set_wait_time(double p_time);
 	double get_wait_time() const;
 
-	void set_one_shot(bool p_one_shot);
-	bool is_one_shot() const;
+	void set_max_repeats(int p_max_repeats);
+	int get_max_repeats() const;
 
 	void set_autostart(bool p_start);
 	bool has_autostart() const;
@@ -72,6 +73,7 @@ public:
 	bool is_stopped() const;
 
 	double get_time_left() const;
+	int get_repeat_index() const;
 
 	PackedStringArray get_configuration_warnings() const override;
 
