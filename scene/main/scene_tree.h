@@ -77,6 +77,45 @@ public:
 	SceneTreeTimer();
 };
 
+
+class SceneTreeScheduledTimer : public RefCounted {
+	GDCLASS(SceneTreeScheduledTimer, RefCounted);
+
+	double time_left = 0.0;
+	int max_repeats = 0;
+	int repeat_index = -1;
+	bool process_always = true;
+	bool process_in_physics = false;
+	bool ignore_time_scale = false;
+
+
+protected:
+	static void _bind_methods();
+
+public:
+	void set_time_left(double p_time);
+	double get_time_left() const;
+
+	void set_max_repeats(int p_max_repeats);
+	int get_max_repeats() const;
+
+	void set_repeat_index(int p_repeat_index);
+	int get_repeat_index() const;
+
+	void set_process_always(bool p_process_always);
+	bool is_process_always();
+
+	void set_process_in_physics(bool p_process_in_physics);
+	bool is_process_in_physics();
+
+	void set_ignore_time_scale(bool p_ignore);
+	bool is_ignore_time_scale();
+
+	void release_connections();
+
+	SceneTreeScheduledTimer();
+};
+
 class SceneTree : public MainLoop {
 	_THREAD_SAFE_CLASS_
 
@@ -165,6 +204,7 @@ private:
 	void _change_scene(Node *p_to);
 
 	List<Ref<SceneTreeTimer>> timers;
+	List<Ref<SceneTreeScheduledTimer>> scheduled_timers;
 	List<Ref<Tween>> tweens;
 
 	///network///
@@ -181,6 +221,7 @@ private:
 	void node_removed(Node *p_node);
 	void node_renamed(Node *p_node);
 	void process_timers(double p_delta, bool p_physics_frame);
+	void process_scheduled_timers(double p_delta, bool p_physics_frame);
 	void process_tweens(double p_delta, bool p_physics_frame);
 
 	Group *add_to_group(const StringName &p_group, Node *p_node);
@@ -363,6 +404,7 @@ public:
 	Error reload_current_scene();
 
 	Ref<SceneTreeTimer> create_timer(double p_delay_sec, bool p_process_always = true, bool p_process_in_physics = false, bool p_ignore_time_scale = false);
+	Ref<SceneTreeScheduledTimer> create_scheduled_timer(int p_max_repeats, double p_delay_sec, bool p_process_always = true, bool p_process_in_physics = false, bool p_ignore_time_scale = false);
 	Ref<Tween> create_tween();
 	TypedArray<Tween> get_processed_tweens();
 

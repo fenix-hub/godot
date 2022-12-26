@@ -116,6 +116,85 @@ void SceneTreeTimer::release_connections() {
 
 SceneTreeTimer::SceneTreeTimer() {}
 
+
+void SceneTreeScheduledTimer::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_time_left", "time"), &SceneTreeScheduledTimer::set_time_left);
+	ClassDB::bind_method(D_METHOD("get_time_left"), &SceneTreeScheduledTimer::get_time_left);
+
+	ClassDB::bind_method(D_METHOD("set_max_repeats", "max_repeats"), &SceneTreeScheduledTimer::set_max_repeats);
+	ClassDB::bind_method(D_METHOD("get_max_repeats"), &SceneTreeScheduledTimer::get_max_repeats);
+
+	ClassDB::bind_method(D_METHOD("set_repeat_index", "repeat_index"), &SceneTreeScheduledTimer::set_repeat_index);
+	ClassDB::bind_method(D_METHOD("get_repeat_index"), &SceneTreeScheduledTimer::get_repeat_index);
+
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "time_left", PROPERTY_HINT_NONE, "suffix:s"), "set_time_left", "get_time_left");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "max_repeats", PROPERTY_HINT_NONE, ""), "set_max_repeats", "get_max_repeats");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "repeat_index", PROPERTY_HINT_NONE, ""), "set_repeat_index", "get_repeat_index");
+
+	ADD_SIGNAL(MethodInfo("timeout"));
+}
+
+void SceneTreeScheduledTimer::set_time_left(double p_time) {
+	time_left = p_time;
+}
+
+double SceneTreeScheduledTimer::get_time_left() const {
+	return time_left;
+}
+
+void SceneTreeScheduledTimer::set_max_repeats(int p_max_repeats) {
+	max_repeats = p_max_repeats;
+}
+
+int SceneTreeScheduledTimer::get_max_repeats() const {
+	return max_repeats;
+}
+
+void SceneTreeScheduledTimer::set_repeat_index(int p_repeat_index) {
+	repeat_index = p_repeat_index;
+}
+
+int SceneTreeScheduledTimer::get_repeat_index() const {
+	return repeat_index;
+}
+
+void SceneTreeScheduledTimer::set_process_always(bool p_process_always) {
+	process_always = p_process_always;
+}
+
+bool SceneTreeScheduledTimer::is_process_always() {
+	return process_always;
+}
+
+void SceneTreeScheduledTimer::set_process_in_physics(bool p_process_in_physics) {
+	process_in_physics = p_process_in_physics;
+}
+
+bool SceneTreeScheduledTimer::is_process_in_physics() {
+	return process_in_physics;
+}
+
+void SceneTreeScheduledTimer::set_ignore_time_scale(bool p_ignore) {
+	ignore_time_scale = p_ignore;
+}
+
+bool SceneTreeScheduledTimer::is_ignore_time_scale() {
+	return ignore_time_scale;
+}
+
+void SceneTreeScheduledTimer::release_connections() {
+	List<Connection> signal_connections;
+	get_all_signal_connections(&signal_connections);
+
+	for (const Connection &connection : signal_connections) {
+		disconnect(connection.signal.get_name(), connection.callable);
+	}
+}
+
+SceneTreeScheduledTimer::SceneTreeScheduledTimer() {}
+
+
+
 void SceneTree::tree_changed() {
 	tree_version++;
 	emit_signal(tree_changed_name);
@@ -431,6 +510,8 @@ bool SceneTree::physics_process(double p_time) {
 
 	process_timers(p_time, true); //go through timers
 
+	process_scheduled_timers(p_time, true); //go through all scheduled timers
+
 	process_tweens(p_time, true);
 
 	flush_transform_notifications();
@@ -474,6 +555,8 @@ bool SceneTree::process(double p_time) {
 	_flush_delete_queue();
 
 	process_timers(p_time, false); //go through timers
+
+	process_scheduled_timers(p_time, false); //go through all scheduled timers
 
 	process_tweens(p_time, false);
 
@@ -543,6 +626,43 @@ void SceneTree::process_timers(double p_delta, bool p_physics_frame) {
 	}
 }
 
+void SceneTree::process_scheduled_timers(double p_delta, bool p_physics_frame) {
+	List<Ref<SceneTreeScheduledTimer>>::Element *L = scheduled_timers.back(); //last element
+
+	for (List<Ref<SceneTreeScheduledTimer>>::Element *E = scheduled_timers.front(); E;) {
+		List<Ref<SceneTreeScheduledTimer>>::Element *N = E->next();
+		if ((paused && !E->get()->is_process_always()) || (E->get()->is_process_in_physics() != p_physics_frame)) {
+			if (E == L) {
+				break; //break on last, so if new scheduled_timers were added during list traversal, ignore them.
+			}
+			E = N;
+			continue;
+		}
+
+		double time_left = E->get()->get_time_left();
+		if (E->get()->is_ignore_time_scale()) {
+			time_left -= Engine::get_singleton()->get_process_step();
+		} else {
+			time_left -= p_delta;
+		}
+		E->get()->set_time_left(time_left);
+
+		int repeat_index = E->get()->get_repeat_index();
+		if (time_left <= 0) {
+			E->get()->set_repeat_index(repeat_index+1);
+			E->get()->emit_signal(SNAME("timeout"));
+
+			if (E->get()->get_repeat_index() >= E->get()->get_max_repeats()) {
+				scheduled_timers.erase(E);
+			}
+		}
+		if (E == L) {
+			break; //break on last, so if new timers were added during list traversal, ignore them.
+		}
+		E = N;
+	}
+}
+
 void SceneTree::process_tweens(double p_delta, bool p_physics) {
 	// This methods works similarly to how SceneTreeTimers are handled.
 	List<Ref<Tween>>::Element *L = tweens.back();
@@ -594,6 +714,12 @@ void SceneTree::finalize() {
 		timer->release_connections();
 	}
 	timers.clear();
+
+	// Cleanup scheduled timers.
+	for (Ref<SceneTreeScheduledTimer> &scheduled_timer: scheduled_timers) {
+		scheduled_timer->release_connections();
+	}
+	scheduled_timers.clear();
 
 	// Cleanup tweens.
 	for (Ref<Tween> &tween : tweens) {
@@ -1163,6 +1289,19 @@ Ref<SceneTreeTimer> SceneTree::create_timer(double p_delay_sec, bool p_process_a
 	return stt;
 }
 
+Ref<SceneTreeScheduledTimer> SceneTree::create_scheduled_timer(int p_max_repeats, double p_delay_sec, bool p_process_always, bool p_process_in_physics, bool p_ignore_time_scale) {
+	Ref<SceneTreeScheduledTimer> stst;
+	stst.instantiate();
+	stst->set_process_always(p_process_always);
+	stst->set_time_left(p_delay_sec);
+	stst->set_max_repeats(p_max_repeats);
+	stst->set_process_in_physics(p_process_in_physics);
+	stst->set_ignore_time_scale(p_ignore_time_scale);
+	scheduled_timers.push_back(stst);
+	return stst;
+}
+
+
 Ref<Tween> SceneTree::create_tween() {
 	Ref<Tween> tween = memnew(Tween(true));
 	tweens.push_back(tween);
@@ -1257,6 +1396,7 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_paused"), &SceneTree::is_paused);
 
 	ClassDB::bind_method(D_METHOD("create_timer", "time_sec", "process_always", "process_in_physics", "ignore_time_scale"), &SceneTree::create_timer, DEFVAL(true), DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("create_scheduled_timer", "max_repeats", "time_sec", "process_always", "process_in_physics", "ignore_time_scale"), &SceneTree::create_scheduled_timer, DEFVAL(true), DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("create_tween"), &SceneTree::create_tween);
 	ClassDB::bind_method(D_METHOD("get_processed_tweens"), &SceneTree::get_processed_tweens);
 

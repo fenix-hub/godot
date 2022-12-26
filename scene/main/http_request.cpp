@@ -655,7 +655,7 @@ void HTTPRequest::_bind_methods() {
 HTTPRequest::HTTPRequest() {
 	client = Ref<HTTPClient>(HTTPClient::create());
 	timer = memnew(Timer);
-	timer->set_one_shot(true);
+	timer->set_max_repeats(0);
 	timer->connect("timeout", callable_mp(this, &HTTPRequest::_timeout));
 	add_child(timer);
 }

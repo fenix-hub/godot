@@ -51,13 +51,13 @@ void Timer::_notification(int p_what) {
 			time_left -= get_process_delta_time();
 
 			if (time_left < 0) {
-				if (repeat_index < max_repeats) {
+				if (max_repeats == -1 || repeat_index < (max_repeats - 1)) {
 					time_left += wait_time;
-					repeats_left += 1;
+					repeat_index += 1;
 				} else {
 					stop();
 				}
-				emit_signal(SNAME("timeout"), repeat_index);
+				emit_signal(SNAME("timeout"));
 			}
 		} break;
 
@@ -68,13 +68,13 @@ void Timer::_notification(int p_what) {
 			time_left -= get_physics_process_delta_time();
 
 			if (time_left < 0) {
-				if (repeat_index < max_repeats) {
+				if (max_repeats == -1 || repeat_index < (max_repeats - 1)) {
 					time_left += wait_time;
 					repeat_index += 1;
 				} else {
 					stop();
 				}
-				emit_signal(SNAME("timeout"), repeat_index);
+				emit_signal(SNAME("timeout"));
 			}
 		} break;
 	}
@@ -91,7 +91,7 @@ double Timer::get_wait_time() const {
 }
 
 void Timer::set_max_repeats(int p_max_repeats) {
-	ERR_FAIL_COND_MSG(p_max_repeats < 0, "Max repeats should be greater than or equal to zero.");
+	ERR_FAIL_COND_MSG(p_max_repeats < -1, "Max repeats should be equal to or greater than -1.");
 	max_repeats = p_max_repeats;
 	update_configuration_warnings();
 }
@@ -114,13 +114,14 @@ void Timer::start(double p_time) {
 	if (p_time > 0) {
 		set_wait_time(p_time);
 	}
-	repeat_index = 0;
+	repeat_index = -1;
 	time_left = wait_time;
 	_set_process(true);
 }
 
 void Timer::stop() {
 	time_left = -1;
+	repeat_index = max_repeats;
 	_set_process(false);
 	autostart = false;
 }
@@ -148,6 +149,10 @@ double Timer::get_time_left() const {
 
 int Timer::get_repeat_index() const {
 	return repeat_index;
+}
+
+int Timer::get_repeats_left() const {
+	return max_repeats > 0 ? (max_repeats - repeat_index) : max_repeats;
 }
 
 void Timer::set_timer_process_callback(TimerProcessCallback p_callback) {
@@ -217,7 +222,9 @@ void Timer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_stopped"), &Timer::is_stopped);
 
 	ClassDB::bind_method(D_METHOD("get_time_left"), &Timer::get_time_left);
+
 	ClassDB::bind_method(D_METHOD("get_repeat_index"), &Timer::get_repeat_index);
+	ClassDB::bind_method(D_METHOD("get_repeats_left"), &Timer::get_repeats_left);
 
 	ClassDB::bind_method(D_METHOD("set_timer_process_callback", "callback"), &Timer::set_timer_process_callback);
 	ClassDB::bind_method(D_METHOD("get_timer_process_callback"), &Timer::get_timer_process_callback);
@@ -226,11 +233,11 @@ void Timer::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "process_callback", PROPERTY_HINT_ENUM, "Physics,Idle"), "set_timer_process_callback", "get_timer_process_callback");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "wait_time", PROPERTY_HINT_RANGE, "0.001,4096,0.001,or_greater,exp,suffix:s"), "set_wait_time", "get_wait_time");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "max_repeats"), "set_max_repeats", "get_max_repeats");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "max_repeats", PROPERTY_HINT_RANGE, "-1,1000,1,or_greater"), "set_max_repeats", "get_max_repeats");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autostart"), "set_autostart", "has_autostart");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "paused", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_paused", "is_paused");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "time_left", PROPERTY_HINT_NONE, "suffix:s", PROPERTY_USAGE_NONE), "", "get_time_left");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "repeat_index"), "", "get_repeat_index");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "repeat_index", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "", "get_repeat_index");
 
 	BIND_ENUM_CONSTANT(TIMER_PROCESS_PHYSICS);
 	BIND_ENUM_CONSTANT(TIMER_PROCESS_IDLE);
