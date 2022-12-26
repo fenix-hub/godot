@@ -368,7 +368,7 @@ void EditorLog::_bind_methods() {
 EditorLog::EditorLog() {
 	save_state_timer = memnew(Timer);
 	save_state_timer->set_wait_time(2);
-	save_state_timer->set_one_shot(true);
+	save_state_timer->set_max_repeats(0);
 	save_state_timer->connect("timeout", callable_mp(this, &EditorLog::_save_state));
 	add_child(save_state_timer);
 

@@ -1547,7 +1547,7 @@ EditorInspectorSection::EditorInspectorSection() {
 
 	dropping_unfold_timer = memnew(Timer);
 	dropping_unfold_timer->set_wait_time(0.6);
-	dropping_unfold_timer->set_one_shot(true);
+	dropping_unfold_timer->set_max_repeats(0);
 	add_child(dropping_unfold_timer);
 	dropping_unfold_timer->connect("timeout", callable_mp(this, &EditorInspectorSection::unfold));
 }

@@ -98,9 +98,9 @@ void SpinBox::_range_click_timeout() {
 		double step = get_custom_arrow_step() != 0.0 ? get_custom_arrow_step() : get_step();
 		set_value(get_value() + (up ? step : -step));
 
-		if (range_click_timer->is_one_shot()) {
+		if ((range_click_timer->get_max_repeats()) == 0) {
 			range_click_timer->set_wait_time(0.075);
-			range_click_timer->set_one_shot(false);
+			range_click_timer->set_max_repeats(-1);
 			range_click_timer->start();
 		}
 
@@ -139,7 +139,7 @@ void SpinBox::gui_input(const Ref<InputEvent> &p_event) {
 				set_value(get_value() + (up ? step : -step));
 
 				range_click_timer->set_wait_time(0.6);
-				range_click_timer->set_one_shot(true);
+				range_click_timer->set_max_repeats(0);
 				range_click_timer->start();
 
 				drag.allowed = true;

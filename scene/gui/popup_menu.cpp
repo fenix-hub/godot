@@ -2136,13 +2136,13 @@ PopupMenu::PopupMenu() {
 
 	submenu_timer = memnew(Timer);
 	submenu_timer->set_wait_time(0.3);
-	submenu_timer->set_one_shot(true);
+	submenu_timer->set_max_repeats(0);
 	submenu_timer->connect("timeout", callable_mp(this, &PopupMenu::_submenu_timeout));
 	add_child(submenu_timer, false, INTERNAL_MODE_FRONT);
 
 	minimum_lifetime_timer = memnew(Timer);
 	minimum_lifetime_timer->set_wait_time(0.3);
-	minimum_lifetime_timer->set_one_shot(true);
+	minimum_lifetime_timer->set_max_repeats(0);
 	minimum_lifetime_timer->connect("timeout", callable_mp(this, &PopupMenu::_minimum_lifetime_timeout));
 	add_child(minimum_lifetime_timer, false, INTERNAL_MODE_FRONT);
 }

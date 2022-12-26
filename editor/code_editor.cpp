@@ -992,7 +992,7 @@ Ref<Texture2D> CodeTextEditor::_get_completion_icon(const ScriptLanguage::CodeCo
 	return tex;
 }
 
-void CodeTextEditor::_font_resize_timeout() {
+void CodeTextEditor::_font_resize_timeout(int p_repeat_index) {
 	if (_add_font_size(font_resize_val)) {
 		font_resize_val = 0;
 	}
@@ -2126,12 +2126,12 @@ CodeTextEditor::CodeTextEditor() {
 
 	idle = memnew(Timer);
 	add_child(idle);
-	idle->set_one_shot(true);
+	idle->set_max_repeats(0);
 	idle->set_wait_time(EDITOR_GET("text_editor/completion/idle_parse_delay"));
 
 	code_complete_timer = memnew(Timer);
 	add_child(code_complete_timer);
-	code_complete_timer->set_one_shot(true);
+	code_complete_timer->set_max_repeats(0);
 	code_complete_timer->set_wait_time(EDITOR_GET("text_editor/completion/code_complete_delay"));
 
 	error_line = 0;
@@ -2205,7 +2205,7 @@ CodeTextEditor::CodeTextEditor() {
 	font_size = EDITOR_GET("interface/editor/code_font_size");
 	font_resize_timer = memnew(Timer);
 	add_child(font_resize_timer);
-	font_resize_timer->set_one_shot(true);
+	font_resize_timer->set_max_repeats(0);
 	font_resize_timer->set_wait_time(0.07);
 	font_resize_timer->connect("timeout", callable_mp(this, &CodeTextEditor::_font_resize_timeout));
 

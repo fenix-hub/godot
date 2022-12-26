@@ -85,6 +85,38 @@
 				The timer will be automatically freed after its time elapses.
 			</description>
 		</method>
+		<method name="create_scheduled_timer">
+			<return type="SceneTreeScheduledTimer" />
+			<param index="0" name="max_repeats" type="int" />
+			<param index="1" name="time_sec" type="float" />
+			<param index="2" name="process_always" type="bool" default="true" />
+			<param index="3" name="process_in_physics" type="bool" default="false" />
+			<param index="4" name="ignore_time_scale" type="bool" default="false" />
+			<description>
+				Returns a [SceneTreeScheduledTimer] which will [signal SceneTreeScheduledTimer.repeated] after the given time in seconds elapsed in this [SceneTree] after an amount of times equals to [member SceneTreeScheduledTimer.max_repeats] after the first execution.
+				If [code]process_always[/code] is set to [code]false[/code], pausing the [SceneTree] will also pause the timer.
+				If [code]process_in_physics[/code] is set to [code]true[/code], will update the [SceneTreeScheduledTimer] during the physics frame instead of the process frame (fixed framerate processing).
+				If [code]ignore_time_scale[/code] is set to [code]true[/code], will ignore [member Engine.time_scale] and update the [SceneTreeScheduledTimer] with the actual frame delta.
+				Commonly used to create a one-shot delay timer as in the following example:
+				[codeblocks]
+				[gdscript]
+				func some_function():
+				    print("Timer started.")
+				    var st: SceneTreeScheduledTimer = get_tree().create_scheduled_timer(1, 1.0)
+				    st.repeated.connect(
+				        func(repeat_index: int):
+				        print("Repetition: ", repeat_index)
+				        # Will print:
+				        # "Repetition 0"
+				        # "Repetition 1"
+				    )
+				    await st.timeout
+				    print("Timer ended.")
+				[/gdscript]
+				[/codeblocks]
+				The timer will be automatically freed after its time elapses.
+			</description>
+		</method>
 		<method name="create_tween">
 			<return type="Tween" />
 			<description>

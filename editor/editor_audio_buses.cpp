@@ -857,7 +857,7 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses, bool p_is_master) {
 
 	preview_timer = memnew(Timer);
 	preview_timer->set_wait_time(0.8f);
-	preview_timer->set_one_shot(true);
+	preview_timer->set_max_repeats(0);
 	add_child(preview_timer);
 
 	slider->connect("value_changed", callable_mp(this, &EditorAudioBus::_volume_changed));
@@ -1323,7 +1323,7 @@ EditorAudioBuses::EditorAudioBuses() {
 
 	save_timer = memnew(Timer);
 	save_timer->set_wait_time(0.8);
-	save_timer->set_one_shot(true);
+	save_timer->set_max_repeats(0);
 	add_child(save_timer);
 	save_timer->connect("timeout", callable_mp(this, &EditorAudioBuses::_server_save));
 

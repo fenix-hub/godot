@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SceneTreeScheduledTimer" inherits="SceneTreeTimer" version="4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Scheduled, multi-shot timer.
+	</brief_description>
+	<description>
+		A scheduled timer managed by the scene tree, which emits [signal timeout] on completion for a specific amount of times after the first emission. See also [method SceneTree.create_scheduled_timer].
+		As opposed to [Timer], it does not require the instantiation of a node. Commonly used to create a multi-shot delay timer as in the following example:
+		[codeblocks]
+		[gdscript]
+		func some_function():
+		    print("Timer started.")
+		    var st: SceneTreeScheduledTimer = get_tree().create_scheduled_timer(1, 1.0)
+		    st.repeated.connect(
+		        func(repeat_index: int):
+		            print("Repetition: ", repeat_index)
+		            # Will print:
+		            # "Repetition 0"
+		            # "Repetition 1"
+		    )
+		    await st.timeout
+		    print("Timer ended.")
+		[/gdscript]
+		[/codeblocks]
+		The timer will be dereferenced after its time elapses. To preserve the timer, you can keep a reference to it. See [RefCounted].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="max_repeats" type="int" setter="set_max_repeats" getter="get_max_repeats">
+			The amount of repeats after the first emission.
+		</member>
+		<member name="repeat_index" type="int" setter="" getter="get_repeat_index">
+			The current repetition index.
+		</member>
+	</members>
+	<signals>
+		<signal name="repeated">
+			<param index="0" name="repetition_indx" type="int" />
+			<description>
+				Emitted when the timer reaches 0 after a repetition.
+			</description>
+		</signal>
+		<signal name="timeout">
+			<description>
+				Emitted when all repetitions have been executed.
+			</description>
+		</signal>
+	</signals>
+</class>

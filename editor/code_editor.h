@@ -174,7 +174,7 @@ class CodeTextEditor : public VBoxContainer {
 	void _update_text_editor_theme();
 	void _complete_request();
 	Ref<Texture2D> _get_completion_icon(const ScriptLanguage::CodeCompletionOption &p_option);
-	void _font_resize_timeout();
+	void _font_resize_timeout(int p_repeat_index);
 	bool _add_font_size(int p_delta);
 
 	virtual void input(const Ref<InputEvent> &event) override;

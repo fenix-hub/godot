@@ -717,7 +717,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	timer = memnew(Timer);
 	timer->set_wait_time(1.5);
 	timer->connect("timeout", callable_mp(ps, &ProjectSettings::save));
-	timer->set_one_shot(true);
+	timer->set_max_repeats(0);
 	add_child(timer);
 
 	set_ok_button_text(TTR("Close"));

@@ -78,40 +78,22 @@ public:
 };
 
 
-class SceneTreeScheduledTimer : public RefCounted {
-	GDCLASS(SceneTreeScheduledTimer, RefCounted);
+class SceneTreeScheduledTimer : public SceneTreeTimer {
+	GDCLASS(SceneTreeScheduledTimer, SceneTreeTimer);
 
-	double time_left = 0.0;
 	int max_repeats = 0;
 	int repeat_index = -1;
-	bool process_always = true;
-	bool process_in_physics = false;
-	bool ignore_time_scale = false;
 
 
 protected:
 	static void _bind_methods();
 
 public:
-	void set_time_left(double p_time);
-	double get_time_left() const;
-
 	void set_max_repeats(int p_max_repeats);
 	int get_max_repeats() const;
 
 	void set_repeat_index(int p_repeat_index);
 	int get_repeat_index() const;
-
-	void set_process_always(bool p_process_always);
-	bool is_process_always();
-
-	void set_process_in_physics(bool p_process_in_physics);
-	bool is_process_in_physics();
-
-	void set_ignore_time_scale(bool p_ignore);
-	bool is_ignore_time_scale();
-
-	void release_connections();
 
 	SceneTreeScheduledTimer();
 };

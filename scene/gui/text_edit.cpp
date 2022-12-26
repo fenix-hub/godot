@@ -7738,7 +7738,7 @@ TextEdit::TextEdit(const String &p_placeholder) {
 
 	idle_detect = memnew(Timer);
 	add_child(idle_detect, false, INTERNAL_MODE_FRONT);
-	idle_detect->set_one_shot(true);
+	idle_detect->set_max_repeats(0);
 	idle_detect->set_wait_time(GLOBAL_GET("gui/timers/text_edit_idle_detect_sec"));
 	idle_detect->connect("timeout", callable_mp(this, &TextEdit::_push_current_op));
 

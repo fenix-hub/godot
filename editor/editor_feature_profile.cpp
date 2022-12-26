@@ -1029,7 +1029,7 @@ EditorFeatureProfileManager::EditorFeatureProfileManager() {
 	update_timer->set_wait_time(1); //wait a second before updating editor
 	add_child(update_timer);
 	update_timer->connect("timeout", callable_mp(this, &EditorFeatureProfileManager::_emit_current_profile_changed));
-	update_timer->set_one_shot(true);
+	update_timer->set_max_repeats(0);
 
 	singleton = this;
 }

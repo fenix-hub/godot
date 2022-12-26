@@ -118,28 +118,16 @@ SceneTreeTimer::SceneTreeTimer() {}
 
 
 void SceneTreeScheduledTimer::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_time_left", "time"), &SceneTreeScheduledTimer::set_time_left);
-	ClassDB::bind_method(D_METHOD("get_time_left"), &SceneTreeScheduledTimer::get_time_left);
-
 	ClassDB::bind_method(D_METHOD("set_max_repeats", "max_repeats"), &SceneTreeScheduledTimer::set_max_repeats);
 	ClassDB::bind_method(D_METHOD("get_max_repeats"), &SceneTreeScheduledTimer::get_max_repeats);
 
 	ClassDB::bind_method(D_METHOD("set_repeat_index", "repeat_index"), &SceneTreeScheduledTimer::set_repeat_index);
 	ClassDB::bind_method(D_METHOD("get_repeat_index"), &SceneTreeScheduledTimer::get_repeat_index);
 
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "time_left", PROPERTY_HINT_NONE, "suffix:s"), "set_time_left", "get_time_left");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "max_repeats", PROPERTY_HINT_NONE, ""), "set_max_repeats", "get_max_repeats");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "repeat_index", PROPERTY_HINT_NONE, ""), "set_repeat_index", "get_repeat_index");
 
-	ADD_SIGNAL(MethodInfo("timeout"));
-}
-
-void SceneTreeScheduledTimer::set_time_left(double p_time) {
-	time_left = p_time;
-}
-
-double SceneTreeScheduledTimer::get_time_left() const {
-	return time_left;
+	ADD_SIGNAL(MethodInfo("repeated", PropertyInfo(Variant::INT, "repeat_index")));
 }
 
 void SceneTreeScheduledTimer::set_max_repeats(int p_max_repeats) {
@@ -156,39 +144,6 @@ void SceneTreeScheduledTimer::set_repeat_index(int p_repeat_index) {
 
 int SceneTreeScheduledTimer::get_repeat_index() const {
 	return repeat_index;
-}
-
-void SceneTreeScheduledTimer::set_process_always(bool p_process_always) {
-	process_always = p_process_always;
-}
-
-bool SceneTreeScheduledTimer::is_process_always() {
-	return process_always;
-}
-
-void SceneTreeScheduledTimer::set_process_in_physics(bool p_process_in_physics) {
-	process_in_physics = p_process_in_physics;
-}
-
-bool SceneTreeScheduledTimer::is_process_in_physics() {
-	return process_in_physics;
-}
-
-void SceneTreeScheduledTimer::set_ignore_time_scale(bool p_ignore) {
-	ignore_time_scale = p_ignore;
-}
-
-bool SceneTreeScheduledTimer::is_ignore_time_scale() {
-	return ignore_time_scale;
-}
-
-void SceneTreeScheduledTimer::release_connections() {
-	List<Connection> signal_connections;
-	get_all_signal_connections(&signal_connections);
-
-	for (const Connection &connection : signal_connections) {
-		disconnect(connection.signal.get_name(), connection.callable);
-	}
 }
 
 SceneTreeScheduledTimer::SceneTreeScheduledTimer() {}
@@ -650,9 +605,10 @@ void SceneTree::process_scheduled_timers(double p_delta, bool p_physics_frame) {
 		int repeat_index = E->get()->get_repeat_index();
 		if (time_left <= 0) {
 			E->get()->set_repeat_index(repeat_index+1);
-			E->get()->emit_signal(SNAME("timeout"));
+			E->get()->emit_signal(SNAME("repeated"), E->get()->get_repeat_index());
 
 			if (E->get()->get_repeat_index() >= E->get()->get_max_repeats()) {
+				E->get()->emit_signal(SNAME("timeout"));
 				scheduled_timers.erase(E);
 			}
 		}

@@ -1442,7 +1442,7 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	// Perform a search automatically if the user hasn't entered any text for a certain duration.
 	// This way, the user doesn't need to press Enter to initiate their search.
 	filter_debounce_timer = memnew(Timer);
-	filter_debounce_timer->set_one_shot(true);
+	filter_debounce_timer->set_max_repeats(0);
 	filter_debounce_timer->set_wait_time(0.25);
 	filter_debounce_timer->connect("timeout", callable_mp(this, &EditorAssetLibrary::_filter_debounce_timer_timeout));
 	search_hb->add_child(filter_debounce_timer);

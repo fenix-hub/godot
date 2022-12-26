@@ -3470,7 +3470,7 @@ ThemeTypeEditor::ThemeTypeEditor() {
 	add_type_dialog->connect("type_selected", callable_mp(this, &ThemeTypeEditor::_add_type_dialog_selected));
 
 	update_debounce_timer = memnew(Timer);
-	update_debounce_timer->set_one_shot(true);
+	update_debounce_timer->set_max_repeats(0);
 	update_debounce_timer->set_wait_time(0.5);
 	update_debounce_timer->connect("timeout", callable_mp(this, &ThemeTypeEditor::_update_type_list));
 	add_child(update_debounce_timer);

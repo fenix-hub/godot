@@ -6454,7 +6454,7 @@ EditorNode::EditorNode() {
 	dock_drag_timer = memnew(Timer);
 	add_child(dock_drag_timer);
 	dock_drag_timer->set_wait_time(0.5);
-	dock_drag_timer->set_one_shot(true);
+	dock_drag_timer->set_max_repeats(0);
 	dock_drag_timer->connect("timeout", callable_mp(this, &EditorNode::_save_docks));
 
 	top_split = memnew(VSplitContainer);
@@ -7450,7 +7450,7 @@ EditorNode::EditorNode() {
 	ED_SHORTCUT_AND_COMMAND("editor/editor_prev", TTR("Open the previous Editor"));
 
 	screenshot_timer = memnew(Timer);
-	screenshot_timer->set_one_shot(true);
+	screenshot_timer->set_max_repeats(0);
 	screenshot_timer->set_wait_time(settings_menu->get_submenu_popup_delay() + 0.1f);
 	screenshot_timer->connect("timeout", callable_mp(this, &EditorNode::_request_screenshot));
 	add_child(screenshot_timer);

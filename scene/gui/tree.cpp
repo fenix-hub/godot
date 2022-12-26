@@ -2591,9 +2591,9 @@ void Tree::_range_click_timeout() {
 		propagate_mouse_event(pos + theme_cache.offset, 0, 0, x_limit + theme_cache.offset.width, false, root, MouseButton::LEFT, mb);
 		blocked--;
 
-		if (range_click_timer->is_one_shot()) {
+		if ((range_click_timer->get_max_repeats()) == 0) {
 			range_click_timer->set_wait_time(0.05);
-			range_click_timer->set_one_shot(false);
+			range_click_timer->set_max_repeats(-1);
 			range_click_timer->start();
 		}
 
@@ -2856,7 +2856,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, int 
 								range_up_last = up;
 
 								range_click_timer->set_wait_time(0.6);
-								range_click_timer->set_one_shot(true);
+								range_click_timer->set_max_repeats(0);
 								range_click_timer->start();
 
 							} else if (up != range_up_last) {
